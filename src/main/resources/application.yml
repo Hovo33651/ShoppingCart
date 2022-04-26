@@ -3,5 +3,13 @@ spring:
     url: jdbc:mysql://localhost:3306/shopping_cart
     username: root
     password: root
+  mvc:
+    path match:
+      matching-strategy: ant_path_matcher
 
+server:
+  port: 8080
 
+jwt:
+  expiration: 300000
+  secret: 23nif$@&bsdb454@#$3SGLWEMP
