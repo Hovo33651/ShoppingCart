@@ -94,8 +94,8 @@ public class ProductEndpoint {
      * @param keyword -> keyword written by customer
      * @return -> if found, returns list of products, if not returns 404
      */
-    @GetMapping("/view/{search}")
-    public ResponseEntity<List<ProductResponseDto>> searchProducts(@PathVariable("search") String keyword) {
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductResponseDto>> searchProducts(@RequestParam("q") String keyword) {
         return productService.getProductsByKeyword(keyword);
     }
 

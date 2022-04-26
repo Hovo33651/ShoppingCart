@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 
 @Configuration
 @RequiredArgsConstructor
@@ -24,6 +25,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
+
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -32,19 +35,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.DELETE, "/users/{id}").hasAnyAuthority("ADMIN")
                 .antMatchers(HttpMethod.POST, "/product/").hasAnyAuthority("ADMIN")
                 .antMatchers(HttpMethod.PUT, "/product/{id}").hasAnyAuthority("ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/product/{id}").hasAnyAuthority("ADMIN")
+                .antMatchers(HttpMethod.GET, "/product/view").authenticated()
+                .antMatchers(HttpMethod.GET, "/product/search").authenticated()
+                .antMatchers(HttpMethod.GET, "/product/view/{type}").authenticated()
+                .antMatchers(HttpMethod.GET, "/product/view/{type}/{sort}/{dir}").authenticated()
                 .antMatchers(HttpMethod.PUT, "/order/{id}").hasAnyAuthority("ADMIN")
-                .antMatchers(HttpMethod.POST,"/users/auth").permitAll()
-                .antMatchers(HttpMethod.POST, "/users/").permitAll()
-                .antMatchers(HttpMethod.GET, "/swagger-ui.html").permitAll()
-                .anyRequest().authenticated();
+                .antMatchers(HttpMethod.GET, "/order/view").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/order/{id}").authenticated()
+                .antMatchers(HttpMethod.POST, "/order/").authenticated()
+                .anyRequest().permitAll();
 
         http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
 
     }
+
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
