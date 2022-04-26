@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/shopping_cart
+    username: root
+    password: root
+
+
