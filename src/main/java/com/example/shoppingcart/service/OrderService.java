@@ -28,6 +28,7 @@ public class OrderService {
 
     /**
      * method to find customer orders
+     *
      * @param currentUser -> current customer
      * @return -> list of current customer orders
      */
@@ -37,14 +38,17 @@ public class OrderService {
 
     /**
      * method to save a new order
-     * @param currentUser -> current customer
-     * @param productId -> product, chosen by current customer
+     *
+     * @param currentUser    -> current customer
+     * @param productId      -> product, chosen by current customer
      * @param countOfProduct -> count of products in order
      * @return -> if product exists, creates the order, saves, returns 200 with the order, if not returns 404
      */
     public ResponseEntity<Order> saveOrder(CurrentUser currentUser, int productId, int countOfProduct) {
         Optional<Product> productById = productRepository.findById(productId);
-        if(!productById.isPresent() || productById.get().getCountInStock() == 0){
+        if (!productById.isPresent() ||
+                productById.get().getCountInStock() == 0 ||
+                productById.get().getCountInStock() < countOfProduct) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         Product product = productById.get();
@@ -62,13 +66,14 @@ public class OrderService {
 
     /**
      * method to change order status(ONLY FOR ADMIN)
+     *
      * @param orderId -> order id
-     * @param status -> new status, chosen by ADMIN
+     * @param status  -> new status, chosen by ADMIN
      * @return if ok, returns 200, if not returns 404;
      */
     public ResponseEntity<String> changeOrderStatus(int orderId, String status) {
         Optional<Order> optOrder = orderRepository.findById(orderId);
-        if(!optOrder.isPresent() || optOrder.get().getStatus().equals(OrderStatus.DELIVERED)){
+        if (!optOrder.isPresent() || optOrder.get().getStatus().equals(OrderStatus.DELIVERED)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         Order order = optOrder.get();
@@ -79,12 +84,13 @@ public class OrderService {
 
     /**
      * method to remove the order
+     *
      * @param orderId -> order id
      * @return -> if removed, returns 200, if not returns 404
      */
     public ResponseEntity<String> deleteOrderById(int orderId) {
         Optional<Order> optOrder = orderRepository.findById(orderId);
-        if(!optOrder.isPresent()){
+        if (!optOrder.isPresent()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         orderRepository.deleteById(orderId);
