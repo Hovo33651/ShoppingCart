@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -40,8 +41,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, "/product/{id}").hasAnyAuthority("ADMIN")
                 .antMatchers(HttpMethod.GET, "/product/view").authenticated()
                 .antMatchers(HttpMethod.GET, "/product/search").authenticated()
-                .antMatchers(HttpMethod.GET, "/product/view/{type}").authenticated()
-                .antMatchers(HttpMethod.GET, "/product/view/{type}/{sort}/{dir}").authenticated()
+                .antMatchers(HttpMethod.GET, "/product/type").authenticated()
+                .antMatchers(HttpMethod.GET, "/product/sort").authenticated()
                 .antMatchers(HttpMethod.PUT, "/order/{id}").hasAnyAuthority("ADMIN")
                 .antMatchers(HttpMethod.GET, "/order/view").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/order/{id}").authenticated()

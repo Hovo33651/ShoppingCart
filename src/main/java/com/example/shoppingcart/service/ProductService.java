@@ -6,12 +6,12 @@ import com.example.shoppingcart.entity.Product;
 import com.example.shoppingcart.entity.ProductType;
 import com.example.shoppingcart.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -27,115 +27,126 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+
 
     /**
-     * endpoint to add a new product in stock(ONLY FOR ADMIN)
+     * method to add a new product in stock(ONLY FOR ADMIN)
+     *
      * @param createProductRequestDto -> new product data
      * @return -> saved product dto
      */
+    @SneakyThrows
     public ProductResponseDto saveProductFromRequest(ProductRequestDto createProductRequestDto) {
-        Product newProduct = modelMapper.map(createProductRequestDto, Product.class);
+        Product newProduct = Product.builder()
+                .name(createProductRequestDto.getName())
+                .description(createProductRequestDto.getDescription())
+                .createdDate(sdf.parse(createProductRequestDto.getCreatedDate()))
+                .countInStock(createProductRequestDto.getCountInStock())
+                .type(ProductType.valueOf(createProductRequestDto.getType()))
+                .price(createProductRequestDto.getPrice())
+                .build();
         Product savedProduct = productRepository.save(newProduct);
         return modelMapper.map(savedProduct, ProductResponseDto.class);
     }
 
+
     /**
-     * endpoint to update the product(ONLY FOR ADMIN)
-     * @param productId -> product id
+     * method to update the product(ONLY FOR ADMIN)
+     *
+     * @param product                 -> product which will be updated
      * @param updateProductRequestDto -> product new data
-     * @return -> if updated, returns product dto, if not returns 404;
+     * @return -> updates and returns ProductRepsonseDto
      */
-    public ResponseEntity<ProductResponseDto> updateProductByIdAndProductRequestIfExists(int productId, ProductRequestDto updateProductRequestDto) {
-        Optional<Product> optProduct = productRepository.findById(productId);
-        if (!optProduct.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        Product product = optProduct.get();
+    @SneakyThrows
+    public ProductResponseDto updateProductByIdAndProductRequestIfExists(Product product, ProductRequestDto updateProductRequestDto) {
         product.setName(updateProductRequestDto.getName());
         product.setDescription(updateProductRequestDto.getDescription());
         product.setCountInStock(updateProductRequestDto.getCountInStock());
-        product.setCreatedDate(updateProductRequestDto.getCreatedDate());
+        product.setCreatedDate(sdf.parse(updateProductRequestDto.getCreatedDate()));
         product.setUpdatedDate(LocalDate.now());
         Product updatedProduct = productRepository.save(product);
-        return ResponseEntity.ok(modelMapper.map(updatedProduct, ProductResponseDto.class));
-
+        return modelMapper.map(updatedProduct, ProductResponseDto.class);
     }
 
 
     /**
-     * endpoint to remove product
-     * @param productId -> product id
-     * @return -> if removed, returns 200, if not returns 404
+     * method to remove product(ONLY FOR ADMIN)
+     *
+     * @param product -> product which will be removed
      */
-    public ResponseEntity<String> removeProductByIdIfExists(int productId) {
-        Optional<Product> product = productRepository.findById(productId);
-        if (!product.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        productRepository.delete(product.get());
-        return ResponseEntity.ok().build();
+    public void removeProduct(Product product) {
+        productRepository.delete(product);
     }
 
+
     /**
-     * endpoint to show all products
+     * method to show all products
+     *
      * @return -> list of existing products
      */
-    public List<ProductResponseDto> getAllProducts() {
+    public List<ProductResponseDto> findAllProducts() {
         List<Product> products = productRepository.findAll();
         return products.stream()
-                .map(product -> modelMapper.map(product,ProductResponseDto.class))
+                .map(product -> modelMapper.map(product, ProductResponseDto.class))
                 .collect(Collectors.toList());
     }
 
+
+
     /**
-     * endpoint to show all products by product type
+     * method to search a product by keyword
+     *
+     * @param keyword -> keyword written by customer
+     * @return ->  list of products found by keyword
+     */
+    public List<ProductResponseDto> findProductsByKeyword(String keyword) {
+        List<Product> products = productRepository.findAll(keyword);
+        return products.stream()
+                .map(product -> modelMapper.map(product, ProductResponseDto.class))
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * method to show all products by product type
+     *
      * @param type -> type, chosen by customer
      * @return -> list of existing products of chosen type
      */
-    public List<ProductResponseDto> getProductsByType(String type) {
-        List<Product> productsByType = productRepository.findProductsByType(ProductType.valueOf(type));
+    public List<ProductResponseDto> findProductsByType(String type) {
+        ProductType productType = ProductType.valueOf(type);
+        List<Product> productsByType = productRepository.findProductsByType(productType);
         return productsByType.stream()
-                .map(product -> modelMapper.map(product,ProductResponseDto.class))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * endpoint to search a product by keyword
-     * @param keyword -> keyword written by customer
-     * @return -> if found, returns list of products, if not returns 404
-     */
-    public ResponseEntity<List<ProductResponseDto>> getProductsByKeyword(String keyword) {
-        List<Product> products = productRepository.findAll();
-        List<ProductResponseDto> responseDtoList = products.stream()
-                .filter(product -> product.getName().contains(keyword)
-                        || product.getDescription().contains(keyword))
                 .map(product -> modelMapper.map(product, ProductResponseDto.class))
                 .collect(Collectors.toList());
-        if(responseDtoList.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.ok(responseDtoList);
     }
+
 
     /**
-     * endpoint to show sorted products by product type
+     * method to show sorted products by product type
+     *
      * @param type -> type, chosen by customer
-     * @param sortStr -> sorting(name,price,createdDate)
-     * @param dir -> direction of sorting(ASC, DESC)
+     * @param sort -> sorting(name,price,createdDate, asc or desc)
      * @return -> sorted list of existing products of chosen type
      */
-    public List<ProductResponseDto> getProductsSortedByType(String type, String sortStr, String dir){
-        Sort sort;
-        if(dir.equals("asc")){
-            sort = Sort.by(sortStr).ascending();
-        }
-        else{
-            sort = Sort.by(sortStr).descending();
-        }
-        List<Product> productsByType = productRepository.findProductsByType(ProductType.valueOf(type), sort);
+    public List<ProductResponseDto> findProductsSortedByType(String type, Sort sort) {
+        ProductType productType = ProductType.valueOf(type);
+        List<Product> productsByType = productRepository.findProductsByType(productType, sort);
         return productsByType.stream()
-                .map(product -> modelMapper.map(product,ProductResponseDto.class))
+                .map(product -> modelMapper.map(product, ProductResponseDto.class))
                 .collect(Collectors.toList());
-
     }
+
+
+    /**
+     * method to find Optional Product by id
+     *
+     * @param productId -> product id
+     * @return -> Optional Product
+     */
+    public Optional<Product> findById(int productId) {
+        return productRepository.findById(productId);
+    }
+
 }

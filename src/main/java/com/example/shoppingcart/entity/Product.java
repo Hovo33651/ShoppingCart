@@ -23,7 +23,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductType type;
     private double price;
-    private volatile int countInStock;
+    private int countInStock;
     private Date createdDate;
     private LocalDate updatedDate;
 }

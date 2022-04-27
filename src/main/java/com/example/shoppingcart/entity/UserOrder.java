@@ -1,8 +1,10 @@
 package com.example.shoppingcart.entity;
 
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -10,8 +12,8 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "order")
-public class Order {
+@Table(name = "user_orders")
+public class UserOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,5 +24,7 @@ public class Order {
     private Product product;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
+    @DateTimeFormat
+    private LocalDateTime createdDate;
 
 }

@@ -13,3 +13,17 @@ server:
 jwt:
   expiration: 300000
   secret: 23nif$@&bsdb454@#$3SGLWEMP
+
+logging:
+  logback:
+    rolling policy:
+      file-name-pattern: ${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz # by date
+      max-file-size: 10MB # by size
+  file:
+    name: C:\Users\Hovhanes Gevorgyan\IdeaProjects\ShoppingCart\log\application-log.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: info
+    com.example: info

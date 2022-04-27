@@ -11,6 +11,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Optional;
 
 /**
@@ -27,24 +29,23 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
 
-    /**
-     * method to find an optional user by email
-     * @param email -> email, from UserLoginRequestDto
-     * @return -> optional user
-     */
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
 
     /**
      * method to save a new user
+     *
      * @param createUserRequestDto -> new user data
-     * saves the new user as customer
-     * generates a jw token for the customer
-     * @return -> UserResponseDto
+     *                             saves the new user as customer
+     *                             generates a jw token for the customer
+     * @return -> if email exists, returns 409, if did save returns UserResponseDto
      */
-    public UserResponseDto saveUserFromRequest(CreateUserRequestDto createUserRequestDto) {
-        User user = modelMapper.map(createUserRequestDto, User.class);
+    public UserResponseDto saveUserFromRequest(CreateUserRequestDto createUserRequestDto) throws ParseException {
+        User user = User.builder()
+                .name(createUserRequestDto.getName())
+                .surname(createUserRequestDto.getSurname())
+                .email(createUserRequestDto.getEmail())
+                .birthday(sdf.parse(createUserRequestDto.getBirthday()))
+                .build();
         user.setType(UserType.CUSTOMER);
         user.setPassword(passwordEncoder.encode(createUserRequestDto.getPassword()));
         userRepository.save(user);
@@ -52,5 +53,25 @@ public class UserService {
         userResponseDto.setToken(jwtTokenUtil.generateToken(userResponseDto.getEmail()));
         return userResponseDto;
 
+    }
+
+    /**
+     * endpoint to sign in
+     * @param user -> customer
+     * creates UserResponseDto, generates token
+     * @return -> UserResponseDto
+     */
+    public UserResponseDto login(User user) {
+        return UserResponseDto.builder()
+                .name(user.getName())
+                .surname(user.getSurname())
+                .email(user.getEmail())
+                .token(jwtTokenUtil.generateToken(user.getEmail()))
+                .type(user.getType())
+                .build();
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }
