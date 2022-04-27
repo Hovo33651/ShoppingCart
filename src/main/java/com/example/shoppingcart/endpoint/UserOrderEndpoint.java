@@ -39,20 +39,19 @@ public class UserOrderEndpoint {
     @GetMapping("")
     public List<UserOrder> showCustomerOrders(@AuthenticationPrincipal CurrentUser currentUser) {
         log.info("User {}: request to see customer orders.", currentUser.getUser().getEmail());
-        return orderService.findCurrentUserOrders(currentUser.getUser());
+        return orderService.findUserOrders(currentUser.getUser());
     }
 
     /**
-     *
-     * @param orderId -> customer order id
+     * @param orderId     -> customer order id
      * @param currentUser -> customer as principal
      * @return -> if order doesn't exist returns 404, if found return 200 with the order
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserOrder> findCustomerOrderById(@PathVariable("id") int orderId,
-                                                           @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<UserOrder> findById(@PathVariable("id") int orderId,
+                                              @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("User {}: request to see a single order", currentUser.getUser().getEmail());
-        Optional<UserOrder> optOrder= orderService.findById(orderId);
+        Optional<UserOrder> optOrder = orderService.findById(orderId);
         return optOrder.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
@@ -66,9 +65,9 @@ public class UserOrderEndpoint {
      * @return -> if saved, returns the order, if not returns 404
      */
     @PostMapping("")
-    public ResponseEntity<UserOrder> saveNewOrder(@AuthenticationPrincipal CurrentUser currentUser,
-                                                  @RequestParam("id") int productId,
-                                                  @RequestParam("count") int countOfProduct) {
+    public ResponseEntity<UserOrder> save(@AuthenticationPrincipal CurrentUser currentUser,
+                                          @RequestParam("id") int productId,
+                                          @RequestParam("count") int countOfProduct) {
         log.info("User {} wants to create a new order", currentUser.getUser().getEmail());
         Optional<Product> productById = productService.findById(productId);
         if (!productById.isPresent() ||
@@ -78,7 +77,7 @@ public class UserOrderEndpoint {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         Product product = productById.get();
-        UserOrder newOrder = orderService.saveOrder(currentUser.getUser(), product, countOfProduct);
+        UserOrder newOrder = orderService.save(currentUser.getUser(), product, countOfProduct);
         log.info("New order has been created for user {}", currentUser.getUser().getEmail());
         return ResponseEntity.ok(newOrder);
     }
@@ -91,8 +90,8 @@ public class UserOrderEndpoint {
      * @return -> if removed, returns 200, if not returns 404
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<UserOrder> deleteOrderByOrderId(@PathVariable("id") int orderId,
-                                                  @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<UserOrder> delete(@PathVariable("id") int orderId,
+                                            @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("User {} wants to remove an order", currentUser.getUser().getEmail());
         Optional<UserOrder> optOrder = orderService.findById(orderId);
         if (!optOrder.isPresent()) {
@@ -100,10 +99,10 @@ public class UserOrderEndpoint {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         if (!optOrder.get().getUser().equals(currentUser.getUser())) {
-            log.warn("User {} wanted to remove user {} order",currentUser.getUser().getEmail(),optOrder.get().getUser().getEmail());
+            log.warn("User {} wanted to remove user {} order", currentUser.getUser().getEmail(), optOrder.get().getUser().getEmail());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        orderService.deleteOrder(optOrder.get());
+        orderService.delete(optOrder.get());
         log.info("User {} removed the order", currentUser.getUser().getEmail());
         return ResponseEntity.ok().build();
     }
@@ -117,9 +116,9 @@ public class UserOrderEndpoint {
      * @return if ok, returns 200, if not returns 404;
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserOrder> changeOrderStatus(@PathVariable("id") int orderId,
-                                               @RequestParam("status") String newStatus,
-                                               @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<UserOrder> changeStatus(@PathVariable("id") int orderId,
+                                                  @RequestParam("status") String newStatus,
+                                                  @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("Admin {} wants to change order status to {}", currentUser.getUser().getEmail(), newStatus);
         Optional<UserOrder> optOrder = orderService.findById(orderId);
         if (!optOrder.isPresent() || optOrder.get().getStatus().equals(OrderStatus.DELIVERED)) {
@@ -128,10 +127,9 @@ public class UserOrderEndpoint {
         }
         UserOrder order = optOrder.get();
         String oldStatus = order.getStatus().name();
-        UserOrder userOrder = orderService.changeOrderStatus(order, newStatus);
+        UserOrder userOrder = orderService.changeStatus(order, newStatus);
         log.info("Order status has been changed from {} to {}", oldStatus, newStatus);
         return ResponseEntity.ok(userOrder);
-
 
     }
 

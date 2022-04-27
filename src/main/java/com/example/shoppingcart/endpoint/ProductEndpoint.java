@@ -42,8 +42,8 @@ public class ProductEndpoint {
      * @return -> saved product dto
      */
     @PostMapping("/")
-    public ResponseEntity<?> saveProduct(@RequestBody @Valid ProductRequestDto createProductRequestDto,
-                                         BindingResult bindingResult,@AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<?> save(@RequestBody @Valid ProductRequestDto createProductRequestDto,
+                                  BindingResult bindingResult) {
         log.info("New request to save a product called {}.", createProductRequestDto.getName());
         if (bindingResult.hasErrors()) {
             List<String> errors = new ArrayList<>();
@@ -52,7 +52,7 @@ public class ProductEndpoint {
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }
-        ProductResponseDto savedProductResponseDto = productService.saveProductFromRequest(createProductRequestDto);
+        ProductResponseDto savedProductResponseDto = productService.save(createProductRequestDto);
         log.info("Product {} has been saved.", savedProductResponseDto.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(savedProductResponseDto);
     }
@@ -67,10 +67,10 @@ public class ProductEndpoint {
      * @return -> if updated, returns product dto, if not returns 404;
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable("id") int productId,
-                                           @RequestBody @Valid ProductRequestDto updateProductRequestDto,
-                                           BindingResult bindingResult,
-                                           @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<?> update(@PathVariable("id") int productId,
+                                    @RequestBody @Valid ProductRequestDto updateProductRequestDto,
+                                    BindingResult bindingResult,
+                                    @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("Admin {} wants to update product", currentUser.getUser().getEmail());
         if (bindingResult.hasErrors()) {
             List<String> errors = new ArrayList<>();
@@ -84,7 +84,7 @@ public class ProductEndpoint {
             log.warn("Product with id {} doesn't exist.", productId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        ProductResponseDto productResponseDto = productService.updateProductByIdAndProductRequestIfExists(optProduct.get(), updateProductRequestDto);
+        ProductResponseDto productResponseDto = productService.update(optProduct.get(), updateProductRequestDto);
         log.info("Product {} has been updated on {}, by Admin {}", productResponseDto.getName(), productResponseDto.getUpdatedDate(), currentUser.getUser().getEmail());
         return ResponseEntity.ok(productResponseDto);
     }
@@ -97,15 +97,15 @@ public class ProductEndpoint {
      * @return -> if removed, returns 200, if not returns 404
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> removeProductIfExists(@PathVariable("id") int productId,
-                                                        @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<String> remove(@PathVariable("id") int productId,
+                                         @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("ADMIN {} wants to remove a product", currentUser.getUser().getEmail());
         Optional<Product> optProduct = productService.findById(productId);
         if (!optProduct.isPresent()) {
             log.warn("Product with id {} doesn't exist", productId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        productService.removeProduct(optProduct.get());
+        productService.delete(optProduct.get());
         log.info("Product has been removed on {} by Admin {}", LocalDateTime.now(), currentUser.getUser().getEmail());
         return ResponseEntity.ok().build();
     }
@@ -117,9 +117,9 @@ public class ProductEndpoint {
      * @return -> list of existing products
      */
     @GetMapping("/view")
-    public List<ProductResponseDto> getAllProducts(@AuthenticationPrincipal CurrentUser currentUser) {
+    public List<ProductResponseDto> getAll(@AuthenticationPrincipal CurrentUser currentUser) {
         log.info("User {}: request to see all products", currentUser.getUser().getEmail());
-        return productService.findAllProducts();
+        return productService.findAll();
     }
 
     /**
@@ -129,11 +129,11 @@ public class ProductEndpoint {
      * @return -> list of existing products of chosen type
      */
     @GetMapping("/type")
-    public ResponseEntity<List<ProductResponseDto>> getProductsByType(@RequestParam("t") String type,
-                                                                      @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<List<ProductResponseDto>> getAllByType(@RequestParam("t") String type,
+                                                                 @AuthenticationPrincipal CurrentUser currentUser) {
         try {
             log.info("User {}: request to see products of type /{}/", currentUser.getUser().getEmail(), type);
-            List<ProductResponseDto> productsByType = productService.findProductsByType(type);
+            List<ProductResponseDto> productsByType = productService.findByType(type);
             if (productsByType.isEmpty()) {
                 log.warn("There is no product of type /{}/", type);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -149,16 +149,16 @@ public class ProductEndpoint {
     /**
      * endpoint to show sorted products by product type
      *
-     * @param type -> type, chosen by customer
+     * @param type    -> type, chosen by customer
      * @param sortStr -> sorting(name,price,createdDate)
-     * @param dir  -> direction of sorting(ASC, DESC)
+     * @param dir     -> direction of sorting(ASC, DESC)
      * @return -> sorted list of existing products of chosen type
      */
     @GetMapping("/sort")
-    public ResponseEntity<List<ProductResponseDto>> seeSortedProductsByType(@RequestParam("t") String type,
-                                                                            @RequestParam("s") String sortStr,
-                                                                            @RequestParam("d") String dir,
-                                                                            @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<List<ProductResponseDto>> getSortedByType(@RequestParam("t") String type,
+                                                                    @RequestParam("s") String sortStr,
+                                                                    @RequestParam("d") String dir,
+                                                                    @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("User {}: request to see products of type {}, sorted by {}, {}", currentUser.getUser().getEmail(), type, sortStr, dir);
         Sort sort;
         if (dir.equals("asc")) {
@@ -169,7 +169,7 @@ public class ProductEndpoint {
             log.warn("Wrong sorting direction: {}", dir);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        List<ProductResponseDto> productsByType = productService.findProductsSortedByType(type, sort);
+        List<ProductResponseDto> productsByType = productService.findByTypeSorted(type, sort);
         if (productsByType.isEmpty()) {
             log.warn("No products of type {} found", type);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -187,10 +187,10 @@ public class ProductEndpoint {
      * @return -> if found, returns list of products, if not returns 404
      */
     @GetMapping("/search")
-    public ResponseEntity<List<ProductResponseDto>> searchProducts(@RequestParam("q") String keyword,
-                                                                   @AuthenticationPrincipal CurrentUser currentUser) {
+    public ResponseEntity<List<ProductResponseDto>> search(@RequestParam("q") String keyword,
+                                                           @AuthenticationPrincipal CurrentUser currentUser) {
         log.info("User {}: request to find product by keyword /{}/", currentUser.getUser().getEmail(), keyword);
-        List<ProductResponseDto> products = productService.findProductsByKeyword(keyword);
+        List<ProductResponseDto> products = productService.findByKeyword(keyword);
         if (products.isEmpty()) {
             log.warn("No products found with keyword /{}/", keyword);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

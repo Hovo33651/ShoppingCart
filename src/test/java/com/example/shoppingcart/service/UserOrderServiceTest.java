@@ -1,7 +1,5 @@
 package com.example.shoppingcart.service;
 
-import com.example.shoppingcart.dto.request.CreateUserRequestDto;
-import com.example.shoppingcart.dto.request.ProductRequestDto;
 import com.example.shoppingcart.entity.*;
 import com.example.shoppingcart.repository.ProductRepository;
 import com.example.shoppingcart.repository.UserOrderRepository;
@@ -13,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,7 +43,7 @@ class UserOrderServiceTest {
     @Test
     void saveOrder() {
         int count = product.getCountInStock();
-        UserOrder order = userOrderService.saveOrder(user, product, 5);
+        UserOrder order = userOrderService.save(user, product, 5);
         assertEquals(1,userOrderRepository.count());
         assertEquals(1,order.getId());
         assertEquals(user,order.getUser());
@@ -55,26 +52,26 @@ class UserOrderServiceTest {
 
     @Test
     void findCurrentUserOrders() {
-        userOrderService.saveOrder(user, product, 1);
-        List<UserOrder> currentUserOrders = userOrderService.findCurrentUserOrders(user);
+        userOrderService.save(user, product, 1);
+        List<UserOrder> currentUserOrders = userOrderService.findUserOrders(user);
         assertFalse(currentUserOrders.isEmpty());
         assertEquals(1,currentUserOrders.size());
     }
 
     @Test
     void changeOrderStatus() {
-        UserOrder order = userOrderService.saveOrder(user, product, 1);
+        UserOrder order = userOrderService.save(user, product, 1);
         assertEquals(OrderStatus.AWAITING_FOR_PAYMENT,order.getStatus());
-        UserOrder updatedOrder = userOrderService.changeOrderStatus(order, "DELIVERED");
+        UserOrder updatedOrder = userOrderService.changeStatus(order, "DELIVERED");
         assertEquals(OrderStatus.DELIVERED,updatedOrder.getStatus());
 
     }
 
     @Test
     void deleteOrder() {
-        UserOrder order = userOrderService.saveOrder(user, product, 1);
+        UserOrder order = userOrderService.save(user, product, 1);
         assertEquals(1,userOrderRepository.count());
-        userOrderService.deleteOrder(order);
+        userOrderService.delete(order);
         assertEquals(0,userOrderRepository.count());
 
 

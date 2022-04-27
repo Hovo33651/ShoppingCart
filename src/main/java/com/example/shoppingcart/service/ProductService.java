@@ -37,7 +37,7 @@ public class ProductService {
      * @return -> saved product dto
      */
     @SneakyThrows
-    public ProductResponseDto saveProductFromRequest(ProductRequestDto createProductRequestDto) {
+    public ProductResponseDto save(ProductRequestDto createProductRequestDto) {
         Product newProduct = Product.builder()
                 .name(createProductRequestDto.getName())
                 .description(createProductRequestDto.getDescription())
@@ -59,7 +59,7 @@ public class ProductService {
      * @return -> updates and returns ProductRepsonseDto
      */
     @SneakyThrows
-    public ProductResponseDto updateProductByIdAndProductRequestIfExists(Product product, ProductRequestDto updateProductRequestDto) {
+    public ProductResponseDto update(Product product, ProductRequestDto updateProductRequestDto) {
         product.setName(updateProductRequestDto.getName());
         product.setDescription(updateProductRequestDto.getDescription());
         product.setCountInStock(updateProductRequestDto.getCountInStock());
@@ -75,7 +75,7 @@ public class ProductService {
      *
      * @param product -> product which will be removed
      */
-    public void removeProduct(Product product) {
+    public void delete(Product product) {
         productRepository.delete(product);
     }
 
@@ -85,13 +85,12 @@ public class ProductService {
      *
      * @return -> list of existing products
      */
-    public List<ProductResponseDto> findAllProducts() {
+    public List<ProductResponseDto> findAll() {
         List<Product> products = productRepository.findAll();
         return products.stream()
                 .map(product -> modelMapper.map(product, ProductResponseDto.class))
                 .collect(Collectors.toList());
     }
-
 
 
     /**
@@ -100,7 +99,7 @@ public class ProductService {
      * @param keyword -> keyword written by customer
      * @return ->  list of products found by keyword
      */
-    public List<ProductResponseDto> findProductsByKeyword(String keyword) {
+    public List<ProductResponseDto> findByKeyword(String keyword) {
         List<Product> products = productRepository.findAll(keyword);
         return products.stream()
                 .map(product -> modelMapper.map(product, ProductResponseDto.class))
@@ -114,7 +113,7 @@ public class ProductService {
      * @param type -> type, chosen by customer
      * @return -> list of existing products of chosen type
      */
-    public List<ProductResponseDto> findProductsByType(String type) {
+    public List<ProductResponseDto> findByType(String type) {
         ProductType productType = ProductType.valueOf(type);
         List<Product> productsByType = productRepository.findProductsByType(productType);
         return productsByType.stream()
@@ -130,7 +129,7 @@ public class ProductService {
      * @param sort -> sorting(name,price,createdDate, asc or desc)
      * @return -> sorted list of existing products of chosen type
      */
-    public List<ProductResponseDto> findProductsSortedByType(String type, Sort sort) {
+    public List<ProductResponseDto> findByTypeSorted(String type, Sort sort) {
         ProductType productType = ProductType.valueOf(type);
         List<Product> productsByType = productRepository.findProductsByType(productType, sort);
         return productsByType.stream()

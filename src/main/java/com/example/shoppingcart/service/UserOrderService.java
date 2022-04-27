@@ -6,7 +6,6 @@ import com.example.shoppingcart.entity.User;
 import com.example.shoppingcart.entity.UserOrder;
 import com.example.shoppingcart.repository.UserOrderRepository;
 import com.example.shoppingcart.repository.ProductRepository;
-import com.example.shoppingcart.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,16 +25,15 @@ public class UserOrderService {
     private final ProductRepository productRepository;
 
 
-
     /**
      * method to save a new order
      *
-     * @param user    -> current customer
+     * @param user           -> current customer
      * @param product        -> product, chosen by current customer
      * @param countOfProduct -> count of products in order
      * @return -> if product exists, creates the order, saves, returns 200 with the order, if not returns 404
      */
-    public UserOrder saveOrder(User user, Product product, int countOfProduct) {
+    public UserOrder save(User user, Product product, int countOfProduct) {
         UserOrder order = UserOrder.builder()
                 .product(product)
                 .user(user)
@@ -49,17 +47,15 @@ public class UserOrderService {
     }
 
 
-
     /**
      * method to find customer orders
      *
      * @param user -> current customer
      * @return -> list of current customer orders
      */
-    public List<UserOrder> findCurrentUserOrders(User user) {
+    public List<UserOrder> findUserOrders(User user) {
         return orderRepository.findOrdersByUser_Id(user.getId());
     }
-
 
 
     /**
@@ -69,7 +65,7 @@ public class UserOrderService {
      * @param newStatus -> new status, chosen by ADMIN
      * @return if ok, returns 200, if not returns 404;
      */
-    public UserOrder changeOrderStatus(UserOrder order, String newStatus) {
+    public UserOrder changeStatus(UserOrder order, String newStatus) {
         order.setStatus(OrderStatus.valueOf(newStatus));
         return orderRepository.save(order);
 
@@ -81,7 +77,7 @@ public class UserOrderService {
      *
      * @param order -> order that will be deleted
      */
-    public void deleteOrder(UserOrder order) {
+    public void delete(UserOrder order) {
         orderRepository.delete(order);
     }
 

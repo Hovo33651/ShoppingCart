@@ -3,7 +3,6 @@ package com.example.shoppingcart.service;
 import com.example.shoppingcart.dto.request.ProductRequestDto;
 import com.example.shoppingcart.dto.response.ProductResponseDto;
 import com.example.shoppingcart.entity.Product;
-import com.example.shoppingcart.entity.ProductType;
 import com.example.shoppingcart.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,7 +38,7 @@ class ProductServiceTest {
 
     @Test
     void saveProductFromRequest() {
-        productService.saveProductFromRequest(productRequestDto);
+        productService.save(productRequestDto);
         Optional<Product> byId = productRepository.findById(1);
         assertTrue(byId.isPresent());
         assertEquals("very good telephone",byId.get().getDescription());
@@ -50,7 +47,7 @@ class ProductServiceTest {
 
     @Test
     void updateProductByIdAndProductRequestIfExists() {
-        productService.saveProductFromRequest(productRequestDto);
+        productService.save(productRequestDto);
         ProductRequestDto updatedRequest = ProductRequestDto.builder()
                 .name("telephone")
                 .description("very bad telephone")
@@ -62,7 +59,7 @@ class ProductServiceTest {
         Optional<Product> optProduct = productRepository.findById(1);
         assertTrue(optProduct.isPresent());
         assertEquals(1,optProduct.get().getId());
-        productService.updateProductByIdAndProductRequestIfExists(optProduct.get(),updatedRequest);
+        productService.update(optProduct.get(),updatedRequest);
         Optional<Product> updatedProduct = productRepository.findById(1);
         assertTrue(updatedProduct.isPresent());
         assertEquals("very bad telephone",updatedProduct.get().getDescription());
@@ -74,20 +71,20 @@ class ProductServiceTest {
 
     @Test
     void removeProduct() {
-        productService.saveProductFromRequest(productRequestDto);
+        productService.save(productRequestDto);
         Optional<Product> opdProduct = productRepository.findById(1);
         assertTrue(opdProduct.isPresent());
-        productService.removeProduct(opdProduct.get());
+        productService.delete(opdProduct.get());
         assertEquals(0,productRepository.count());
     }
 
     @Test
     void findAllProducts() {
-        productService.saveProductFromRequest(productRequestDto);
-        productService.saveProductFromRequest(productRequestDto);
-        productService.saveProductFromRequest(productRequestDto);
-        productService.saveProductFromRequest(productRequestDto);
-        List<ProductResponseDto> allProducts = productService.findAllProducts();
+        productService.save(productRequestDto);
+        productService.save(productRequestDto);
+        productService.save(productRequestDto);
+        productService.save(productRequestDto);
+        List<ProductResponseDto> allProducts = productService.findAll();
         assertFalse(allProducts.isEmpty());
         assertEquals(4,allProducts.size());
 
@@ -96,11 +93,11 @@ class ProductServiceTest {
 
     @Test
     void findProductsByType() {
-        productService.saveProductFromRequest(productRequestDto);
-        productService.saveProductFromRequest(productRequestDto);
-        productService.saveProductFromRequest(productRequestDto);
-        List<ProductResponseDto> electronicProducts = productService.findProductsByType("ELECTRONICS");
-        List<ProductResponseDto> careProducts = productService.findProductsByType("CARE");
+        productService.save(productRequestDto);
+        productService.save(productRequestDto);
+        productService.save(productRequestDto);
+        List<ProductResponseDto> electronicProducts = productService.findByType("ELECTRONICS");
+        List<ProductResponseDto> careProducts = productService.findByType("CARE");
         assertFalse(electronicProducts.isEmpty());
         assertEquals(3,electronicProducts.size());
         assertTrue(careProducts.isEmpty());
@@ -109,9 +106,9 @@ class ProductServiceTest {
 
     @Test
     void findProductsByKeyword() {
-        productService.saveProductFromRequest(productRequestDto);
-        List<ProductResponseDto> productsByCorrectKeyword = productService.findProductsByKeyword("tel");
-        List<ProductResponseDto> productsByWrongKeyword = productService.findProductsByKeyword("bla");
+        productService.save(productRequestDto);
+        List<ProductResponseDto> productsByCorrectKeyword = productService.findByKeyword("tel");
+        List<ProductResponseDto> productsByWrongKeyword = productService.findByKeyword("bla");
         assertFalse(productsByCorrectKeyword.isEmpty());
         assertEquals(1,productsByCorrectKeyword.size());
         assertTrue(productsByWrongKeyword.isEmpty());
@@ -120,9 +117,9 @@ class ProductServiceTest {
 
     @Test
     void findProductsSortedByType() {
-        productService.saveProductFromRequest(productRequestDto);
+        productService.save(productRequestDto);
         Sort sort = Sort.by("name").ascending();
-        List<ProductResponseDto> products = productService.findProductsSortedByType("ELECTRONICS", sort);
+        List<ProductResponseDto> products = productService.findByTypeSorted("ELECTRONICS", sort);
         assertFalse(products.isEmpty());
     }
 }

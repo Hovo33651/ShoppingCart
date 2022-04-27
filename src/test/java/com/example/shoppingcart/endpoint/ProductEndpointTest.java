@@ -32,8 +32,8 @@ class ProductEndpointTest {
         saveProductRequest.put("createdDate", "04.04.2020");
 
         mockMvc.perform(post("http://localhost:8080/product/")
-                .contentType(APPLICATION_JSON)
-                .content(saveProductRequest.toString()))
+                        .contentType(APPLICATION_JSON)
+                        .content(saveProductRequest.toString()))
                 .andExpect(status().isCreated());
 
     }
@@ -50,8 +50,8 @@ class ProductEndpointTest {
         saveProductRequest.put("createdDate", "04.04.2020");
 
         mockMvc.perform(post("http://localhost:8080/product/")
-                .contentType(APPLICATION_JSON)
-                .content(saveProductRequest.toString()))
+                        .contentType(APPLICATION_JSON)
+                        .content(saveProductRequest.toString()))
                 .andExpect(status().isBadRequest());
 
     }
@@ -68,37 +68,9 @@ class ProductEndpointTest {
         saveProductRequest.put("createdDate", "04.04.2020");
 
         mockMvc.perform(post("http://localhost:8080/product/")
-                .contentType(APPLICATION_JSON)
-                .content(saveProductRequest.toString()))
+                        .contentType(APPLICATION_JSON)
+                        .content(saveProductRequest.toString()))
                 .andExpect(status().isForbidden());
     }
 
-
-
-    @Test
-    void updateProduct_When_Filled_Correctly(){
-
-    }
-
-    @Test
-    void removeProductIfExists() {
-
-    }
-
-
-    @Test
-    void getAllProducts() {
-    }
-
-    @Test
-    void getProductsByType() {
-    }
-
-    @Test
-    void seeSortedProductsByType() {
-    }
-
-    @Test
-    void searchProducts() {
-    }
 }

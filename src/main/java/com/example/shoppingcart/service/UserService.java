@@ -28,8 +28,8 @@ public class UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
-
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+
 
     /**
      * method to save a new user
@@ -39,7 +39,7 @@ public class UserService {
      *                             generates a jw token for the customer
      * @return -> if email exists, returns 409, if did save returns UserResponseDto
      */
-    public UserResponseDto saveUserFromRequest(CreateUserRequestDto createUserRequestDto) throws ParseException {
+    public UserResponseDto save(CreateUserRequestDto createUserRequestDto) throws ParseException {
         User user = User.builder()
                 .name(createUserRequestDto.getName())
                 .surname(createUserRequestDto.getSurname())
@@ -57,8 +57,9 @@ public class UserService {
 
     /**
      * endpoint to sign in
+     *
      * @param user -> customer
-     * creates UserResponseDto, generates token
+     *             creates UserResponseDto, generates token
      * @return -> UserResponseDto
      */
     public UserResponseDto login(User user) {

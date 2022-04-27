@@ -5,7 +5,6 @@ import com.example.shoppingcart.dto.request.UserLoginRequestDto;
 import com.example.shoppingcart.dto.response.UserResponseDto;
 import com.example.shoppingcart.entity.User;
 import com.example.shoppingcart.service.UserService;
-import com.example.shoppingcart.util.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -48,7 +47,7 @@ public class UserEndpoint {
      *                            else generates jw token and returns the user
      */
     @PostMapping("/auth")
-    public ResponseEntity<?> userLogin(@RequestBody @Valid UserLoginRequestDto userLoginRequestDto, BindingResult bindingResult) {
+    public ResponseEntity<?> login(@RequestBody @Valid UserLoginRequestDto userLoginRequestDto, BindingResult bindingResult) {
         log.info("Request from {} to sign in", userLoginRequestDto.getEmail());
         if (bindingResult.hasErrors()) {
             List<String> errors = new ArrayList<>();
@@ -80,7 +79,7 @@ public class UserEndpoint {
      *            else returns 200 and user response dto
      */
     @PostMapping("/")
-    public ResponseEntity<?> saveUser(@RequestBody @Valid CreateUserRequestDto createUserRequestDto, BindingResult bindingResult) throws ParseException {
+    public ResponseEntity<?> register(@RequestBody @Valid CreateUserRequestDto createUserRequestDto, BindingResult bindingResult) throws ParseException {
         log.info("Request to get registered: email {}", createUserRequestDto.getEmail());
         if (bindingResult.hasErrors()) {
             List<String> errors = new ArrayList<>();
@@ -94,7 +93,7 @@ public class UserEndpoint {
             log.warn("User with email {} already exists", createUserRequestDto.getEmail());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
-        UserResponseDto userResponseDto = userService.saveUserFromRequest(createUserRequestDto);
+        UserResponseDto userResponseDto = userService.save(createUserRequestDto);
         log.info("User {} has been registered successfully", userResponseDto.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDto);
 
