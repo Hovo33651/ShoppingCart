@@ -22,7 +22,7 @@ class ProductEndpointTest {
 
     @WithMockUser(authorities = "ADMIN")
     @Test
-    void saveProduct_When_Filled_Correctly() throws Exception {
+    void saveProduct_OK() throws Exception {
         ObjectNode saveProductRequest = new ObjectMapper().createObjectNode();
         saveProductRequest.put("name", "telephone");
         saveProductRequest.put("description", "very good telephone");
